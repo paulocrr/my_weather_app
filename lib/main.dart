@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:my_weather_app/core/config/configuration.dart';
 
-void main() {
+void main() async {
+  await dotenv.load(fileName: Configuration.envFileName);
+
   runApp(const MyApp());
 }
 
