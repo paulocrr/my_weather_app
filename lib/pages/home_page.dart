@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:my_weather_app/core/failures/failure.dart';
-import 'package:my_weather_app/core/failures/location_denied_failure.dart';
-import 'package:my_weather_app/core/failures/not_found_failure.dart';
-import 'package:my_weather_app/core/failures/offline_failure.dart';
+import 'package:my_weather_app/extensions/string_extensions.dart';
 import 'package:my_weather_app/models/user_position.dart';
 import 'package:my_weather_app/models/weather_response.dart';
 import 'package:my_weather_app/services/position_service.dart';
 import 'package:my_weather_app/services/weather_service.dart';
+import 'package:my_weather_app/widgets/failure_shower.dart';
+import 'package:my_weather_app/widgets/weather_item.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -66,6 +65,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xfff4f4fc),
       body: isLoading
           ? const Center(
               child: CircularProgressIndicator(),
@@ -75,31 +75,80 @@ class _HomePageState extends State<HomePage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   if (failure != null) ...[
-                    if (failure is OfflineFailure) ...[
-                      const Text('Usted no tiene internet')
-                    ] else if (failure is NotFoundFailure) ...[
-                      const Text('No hay data para su zona')
-                    ] else if (failure is LocationDeniedFailure) ...[
-                      ElevatedButton(
-                        onPressed: () async {
-                          await Geolocator.openLocationSettings();
-                        },
-                        child: const Text('Reintentar'),
-                      )
-                    ] else ...[
-                      Text(failure!.message)
-                    ]
+                    FailureShower(
+                      failure: failure!,
+                      onRetry: () => updateWeatherInformation(),
+                    )
                   ] else if (response != null) ...[
-                    Center(
-                      child: Text(
-                        '${response!.temperatureInformation.temp}',
-                        style: TextStyle(fontSize: 32),
-                      ),
+                    _WeatherInformation(response: response!),
+                    ElevatedButton(
+                      onPressed: () => updateWeatherInformation(),
+                      child: const Text('Actualizar información'),
                     )
                   ]
                 ],
               ),
             ),
+    );
+  }
+
+  void updateWeatherInformation() {
+    setState(() {
+      isLoading = true;
+    });
+
+    getUserCurrentPosition();
+  }
+}
+
+class _WeatherInformation extends StatelessWidget {
+  final WeatherResponse response;
+
+  const _WeatherInformation({required this.response});
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Center(
+            child: SizedBox(
+              height: 120,
+              width: 120,
+              child: response.weather.first.main.getWeatherSvg,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Temperatura: ${response.temperatureInformation.temp} Celsius',
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Descripción: ${response.weather.first.description}',
+            style: const TextStyle(fontSize: 16),
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 8.0),
+            child: Divider(color: Colors.blueGrey),
+          ),
+          WeatherItem(
+            icon: 'assets/svgs/wind_speed.svg',
+            text: 'Velocidad del viento',
+            value: '${response.wind.speed} Km/h',
+          ),
+          WeatherItem(
+            icon: 'assets/svgs/angle.svg',
+            text: 'Angulo del viento',
+            value: '${response.wind.deg} grados',
+          ),
+        ],
+      ),
     );
   }
 }
