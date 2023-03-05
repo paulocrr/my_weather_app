@@ -8,7 +8,7 @@ import 'package:my_weather_app/core/failures/not_found_failure.dart';
 import 'package:my_weather_app/core/failures/offline_failure.dart';
 import 'package:my_weather_app/core/failures/server_failure.dart';
 import 'package:my_weather_app/core/failures/unauthorized_failure.dart';
-import 'package:my_weather_app/core/failures/unknown_exceptions.dart';
+import 'package:my_weather_app/core/failures/unknown_failure.dart';
 import 'package:my_weather_app/core/networking/network_client.dart';
 import 'package:my_weather_app/models/user_position.dart';
 import 'package:my_weather_app/models/weather_response.dart';
